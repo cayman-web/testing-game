@@ -25,7 +25,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   // Видео не кэшируем через SW (могут быть большими) — только статику
-  if (event.request.url.includes("/videos/")) return;
+  if (/\.mp4($|\?)/.test(event.request.url)) return;
 
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
