@@ -32,6 +32,29 @@ function splitLeaf(node, dir, existingVideo, newVideo) {
   delete node.video;
 }
 
+// Убирает пустой лист из дерева и "схлопывает" освободившееся место —
+// сосед по разбиению (со всей своей вложенной структурой) занимает
+// всё пространство родителя. Ищем родителя листа target, начиная от from.
+function collapseEmptyLeaf(from, target) {
+  if (from.type !== "split") return false;
+  if (from.a === target) {
+    replaceNodeContents(from, from.b);
+    return true;
+  }
+  if (from.b === target) {
+    replaceNodeContents(from, from.a);
+    return true;
+  }
+  return collapseEmptyLeaf(from.a, target) || collapseEmptyLeaf(from.b, target);
+}
+
+// Переносит содержимое src в dest, сохраняя объект dest (важно, если на
+// него ссылается ещё более верхний узел дерева).
+function replaceNodeContents(dest, src) {
+  Object.keys(dest).forEach((k) => delete dest[k]);
+  Object.assign(dest, src);
+}
+
 // ===== Рендер дерева в DOM =====
 function renderTree(node) {
   if (node.type === "leaf") {
@@ -78,6 +101,7 @@ function renderLeaf(node) {
   clearBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     node.video = null;
+    collapseEmptyLeaf(root, node);
     rerenderCanvas();
   });
 
