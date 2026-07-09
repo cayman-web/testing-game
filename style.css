@@ -83,8 +83,7 @@ body {
 }
 
 .grid-cell.filled {
-  border-style: solid;
-  border-color: transparent;
+  border: none;
   background: #000;
 }
 

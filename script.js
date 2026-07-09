@@ -56,6 +56,55 @@ function replaceNodeContents(dest, src) {
 }
 
 // ===== Рендер дерева в DOM =====
+
+// Кэш живых <video>-элементов по индексу файла. Дерево раскладки
+// перестраивается с нуля при каждом изменении (сплит/схлопывание), но
+// сами видео-элементы переиспользуются и просто переставляются в новые
+// ячейки — поэтому воспроизведение не сбрасывается на начало при
+// добавлении/удалении других видео.
+const videoElCache = {};
+
+function getOrCreateVideoEl(index) {
+  let el = videoElCache[index];
+  if (el) return el;
+
+  el = document.createElement("video");
+  el.src = videos[index];
+  el.muted = true;
+  el.loop = true;
+  el.autoplay = true;
+  el.playsInline = true;
+  el.setAttribute("webkit-playsinline", "");
+  el.play().catch(() => {});
+  attachDoubleTap(el, () => openFullscreen(videos[index], el.muted));
+
+  videoElCache[index] = el;
+  return el;
+}
+
+function collectUsedVideoIndices(node, set) {
+  if (node.type === "leaf") {
+    if (node.video !== null) set.add(node.video);
+    return;
+  }
+  collectUsedVideoIndices(node.a, set);
+  collectUsedVideoIndices(node.b, set);
+}
+
+// Останавливает и выбрасывает из кэша видео, которых больше нет нигде
+// в дереве (убраны крестиком или заменены другим видео в той же ячейке).
+function cleanupUnusedVideos(usedSet) {
+  Object.keys(videoElCache).forEach((key) => {
+    if (usedSet.has(Number(key))) return;
+    const el = videoElCache[key];
+    try {
+      el.pause();
+    } catch (e) {}
+    if (el.parentNode) el.parentNode.removeChild(el);
+    delete videoElCache[key];
+  });
+}
+
 function renderTree(node) {
   if (node.type === "leaf") {
     return renderLeaf(node);
@@ -70,6 +119,10 @@ function renderTree(node) {
 function rerenderCanvas() {
   canvas.innerHTML = "";
   canvas.appendChild(renderTree(root));
+
+  const used = new Set();
+  collectUsedVideoIndices(root, used);
+  cleanupUnusedVideos(used);
 }
 
 function renderLeaf(node) {
@@ -84,16 +137,7 @@ function renderLeaf(node) {
 
   cell.classList.add("filled");
 
-  const video = document.createElement("video");
-  video.src = videos[node.video];
-  video.muted = true;
-  video.loop = true;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.setAttribute("webkit-playsinline", "");
-  video.play().catch(() => {});
-
-  attachDoubleTap(video, () => openFullscreen(videos[node.video], video.muted));
+  const video = getOrCreateVideoEl(node.video);
 
   const clearBtn = document.createElement("button");
   clearBtn.className = "cell-btn cell-clear";
@@ -109,7 +153,7 @@ function renderLeaf(node) {
   muteBtn.className = "cell-btn cell-mute";
   const iconMuted = `<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M17 8l4 8M21 8l-4 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`;
   const iconSound = `<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16 9a4 4 0 010 6" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`;
-  muteBtn.innerHTML = iconMuted;
+  muteBtn.innerHTML = video.muted ? iconMuted : iconSound;
   muteBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     video.muted = !video.muted;
