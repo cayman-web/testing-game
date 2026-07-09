@@ -125,6 +125,87 @@ function rerenderCanvas() {
   cleanupUnusedVideos(used);
 }
 
+// ===== Плавные переходы при добавлении/удалении видео (FLIP-техника) =====
+// Раскладка каждый раз перестраивается с нуля, поэтому вместо анимации
+// "живого" DOM-дерева мы: 1) запоминаем экранные координаты всех видео
+// ДО изменения, 2) перестраиваем DOM, 3) для видео, которые были и раньше
+// (просто переехали/изменили размер) — проигрываем FLIP-переход, а для
+// только что появившихся — плавное появление (fade + scale-in).
+const FLIP_MS = 320;
+const FADE_MS = 260;
+
+function captureVideoRects() {
+  const rects = {};
+  Object.keys(videoElCache).forEach((idx) => {
+    const el = videoElCache[idx];
+    if (el.isConnected) rects[idx] = el.getBoundingClientRect();
+  });
+  return rects;
+}
+
+function flipAnimate(el, firstRect) {
+  const last = el.getBoundingClientRect();
+  const dx = firstRect.left - last.left;
+  const dy = firstRect.top - last.top;
+  const sx = firstRect.width / last.width;
+  const sy = firstRect.height / last.height;
+  if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.01 && Math.abs(sy - 1) < 0.01) {
+    return;
+  }
+  el.style.transition = "none";
+  el.style.transformOrigin = "top left";
+  el.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+  void el.offsetWidth; // форсируем reflow, чтобы стартовое состояние применилось
+  requestAnimationFrame(() => {
+    el.style.transition = `transform ${FLIP_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`;
+    el.style.transform = "";
+    const cleanup = () => {
+      el.style.transition = "";
+      el.style.transformOrigin = "";
+      el.removeEventListener("transitionend", cleanup);
+    };
+    el.addEventListener("transitionend", cleanup);
+  });
+}
+
+function fadeInNewVideo(el) {
+  el.style.transition = "none";
+  el.style.opacity = "0";
+  el.style.transform = "scale(0.86)";
+  void el.offsetWidth;
+  requestAnimationFrame(() => {
+    el.style.transition = `opacity ${FADE_MS}ms ease, transform ${FADE_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`;
+    el.style.opacity = "1";
+    el.style.transform = "";
+    const cleanup = () => {
+      el.style.transition = "";
+      el.style.opacity = "";
+      el.removeEventListener("transitionend", cleanup);
+    };
+    el.addEventListener("transitionend", cleanup);
+  });
+}
+
+// Перестраивает канвас и анимирует результат: preRects — координаты видео
+// ДО изменения дерева (снятые через captureVideoRects() перед мутацией).
+function rerenderCanvasAnimated(preRects) {
+  rerenderCanvas();
+  requestAnimationFrame(() => {
+    const used = new Set();
+    collectUsedVideoIndices(root, used);
+    used.forEach((idx) => {
+      const el = videoElCache[idx];
+      if (!el) return;
+      const pre = preRects[idx];
+      if (pre) {
+        flipAnimate(el, pre);
+      } else {
+        fadeInNewVideo(el);
+      }
+    });
+  });
+}
+
 function renderLeaf(node) {
   const cell = document.createElement("div");
   cell.className = "grid-cell";
@@ -144,9 +225,16 @@ function renderLeaf(node) {
   clearBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>`;
   clearBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    node.video = null;
-    collapseEmptyLeaf(root, node);
-    rerenderCanvas();
+    const finish = () => {
+      const preRects = captureVideoRects();
+      node.video = null;
+      collapseEmptyLeaf(root, node);
+      rerenderCanvasAnimated(preRects);
+    };
+    video.style.transition = `opacity 180ms ease, transform 180ms ease`;
+    video.style.opacity = "0";
+    video.style.transform = "scale(0.92)";
+    setTimeout(finish, 180);
   });
 
   const muteBtn = document.createElement("button");
@@ -420,17 +508,30 @@ function handleDrop(cellEl, videoIndex) {
   if (!node) return;
 
   if (node.video === null) {
-    // Пустая ячейка — просто вставляем
+    // Пустая ячейка — просто вставляем, новое видео плавно проявляется
+    const preRects = captureVideoRects();
     node.video = videoIndex;
-    rerenderCanvas();
+    rerenderCanvasAnimated(preRects);
     return;
   }
 
   // Ячейка уже занята
   if (countLeaves(root) >= MAX_CELLS) {
-    // Достигнут максимум ячеек — заменяем видео в этой же ячейке
-    node.video = videoIndex;
-    rerenderCanvas();
+    // Достигнут максимум ячеек — заменяем видео в этой же ячейке:
+    // старое плавно гаснет, затем на его месте плавно проявляется новое
+    const oldEl = videoElCache[node.video];
+    const swap = () => {
+      const preRects = captureVideoRects();
+      node.video = videoIndex;
+      rerenderCanvasAnimated(preRects);
+    };
+    if (oldEl) {
+      oldEl.style.transition = "opacity 160ms ease";
+      oldEl.style.opacity = "0";
+      setTimeout(swap, 160);
+    } else {
+      swap();
+    }
     return;
   }
 
@@ -443,10 +544,11 @@ splitOverlay.querySelectorAll(".split-option").forEach((btn) => {
   btn.addEventListener("click", () => {
     if (!pendingSplit) return;
     const dir = btn.dataset.dir;
+    const preRects = captureVideoRects();
     splitLeaf(pendingSplit.node, dir, pendingSplit.node.video, pendingSplit.newVideoIndex);
     pendingSplit = null;
     splitOverlay.classList.remove("visible");
-    rerenderCanvas();
+    rerenderCanvasAnimated(preRects);
   });
 });
 
