@@ -10,12 +10,14 @@ const player = document.getElementById("player");
 const buttons = document.querySelectorAll(".glass-btn");
 const playOverlay = document.getElementById("playOverlay");
 
+player.loop = true;
+player.muted = true; // обязательное условие автовоспроизведения на iOS
+
 function selectVideo(index) {
   buttons.forEach((btn) => btn.classList.remove("active"));
   buttons[index].classList.add("active");
 
   const src = videos[index];
-  // Меняем источник только если видео реально другое
   if (!player.currentSrc.endsWith(src.split("/").pop())) {
     player.src = src;
     player.load();
@@ -23,7 +25,7 @@ function selectVideo(index) {
 
   playOverlay.classList.add("hidden");
   player.play().catch(() => {
-    // Автоплей может быть заблокирован Safari — показываем кнопку play
+    // На случай если автоплей всё же заблокирован — показываем кнопку play
     playOverlay.classList.remove("hidden");
   });
 }
@@ -40,6 +42,13 @@ player.addEventListener("play", () => playOverlay.classList.add("hidden"));
 
 playOverlay.addEventListener("click", () => {
   player.play();
+});
+
+// Пытаемся запустить видео сразу при загрузке страницы
+window.addEventListener("DOMContentLoaded", () => {
+  player.play().catch(() => {
+    playOverlay.classList.remove("hidden");
+  });
 });
 
 // Регистрируем service worker для офлайн-работы как PWA (не обязателен, но полезен)
