@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Видео-плеер</title>
+<title>Видео-сетка</title>
 
-<!-- PWA / iOS "Add to Home Screen" -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Видео">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 
@@ -19,42 +18,51 @@
 
 <div class="app">
 
-  <!-- Фоновая картинка/градиент, чтобы стекло было на чём "играть" -->
-  <div class="bg"></div>
-
-  <div class="layout">
-
-    <!-- Левая колонка: стеклянные кнопки выбора видео -->
-    <nav class="glass-container" id="buttonList">
-      <button class="glass-btn active" data-video="0">
-        <span class="btn-label">Видео 1</span>
-      </button>
-      <button class="glass-btn" data-video="1">
-        <span class="btn-label">Видео 2</span>
-      </button>
-      <button class="glass-btn" data-video="2">
-        <span class="btn-label">Видео 3</span>
-      </button>
-      <button class="glass-btn" data-video="3">
-        <span class="btn-label">Видео 4</span>
-      </button>
-    </nav>
-
-    <!-- Правая колонка: плеер в закруглённом прямоугольнике -->
-    <div class="player-wrap">
-      <div class="player-frame">
-        <video id="player" playsinline webkit-playsinline preload="auto" controls loop autoplay muted>
-          <source src="video1.mp4" type="video/mp4">
-        </video>
-        <div class="play-overlay" id="playOverlay">
-          <svg viewBox="0 0 24 24" width="34" height="34">
-            <path fill="white" d="M8 5v14l11-7z"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
+  <!-- Верхняя панель выбора шаблона раскладки -->
+  <div class="template-bar" id="templateBar">
+    <button class="template-btn active" data-template="1" aria-label="2 на 2">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>
+    </button>
+    <button class="template-btn" data-template="2" aria-label="Два ряда">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/></svg>
+    </button>
+    <button class="template-btn" data-template="3" aria-label="Одна большая и две маленьких">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="16" rx="1.5"/></svg>
+    </button>
+    <button class="template-btn" data-template="4" aria-label="Два столбца">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="16" rx="1.5"/><rect x="13" y="4" width="8" height="16" rx="1.5"/></svg>
+    </button>
   </div>
+
+  <!-- Основная область с сеткой ячеек -->
+  <div class="canvas layout-1" id="canvas">
+    <div class="grid-cell" data-cell="0">
+      <div class="cell-placeholder">Перетащите видео сюда</div>
+    </div>
+    <div class="grid-cell" data-cell="1">
+      <div class="cell-placeholder">Перетащите видео сюда</div>
+    </div>
+    <div class="grid-cell" data-cell="2">
+      <div class="cell-placeholder">Перетащите видео сюда</div>
+    </div>
+    <div class="grid-cell" data-cell="3">
+      <div class="cell-placeholder">Перетащите видео сюда</div>
+    </div>
+  </div>
+
+  <!-- Нижняя выезжающая шторка со списком видео -->
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle" id="sheetHandle">
+      <div class="handle-bar"></div>
+    </div>
+    <div class="sheet-content">
+      <div class="sheet-grid" id="sheetGrid"></div>
+    </div>
+  </div>
+
+  <!-- Плавающая иконка-призрак, следующая за пальцем при перетаскивании -->
+  <div class="drag-ghost" id="dragGhost"></div>
+
 </div>
 
 <script src="script.js"></script>

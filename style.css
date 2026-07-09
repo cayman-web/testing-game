@@ -1,10 +1,12 @@
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.14);
-  --glass-bg-active: rgba(255, 255, 255, 0.28);
-  --glass-border: rgba(255, 255, 255, 0.35);
-  --glass-highlight: rgba(255, 255, 255, 0.55);
-  --radius-btn: 18px;
-  --radius-player: 28px;
+  --ios-blue: #007AFF;
+  --bg-page: #ffffff;
+  --bg-cell: #f2f2f7;
+  --border-cell: #d0d0d5;
+  --text-secondary: #9a9aa0;
+  --sheet-bg: #ffffff;
+  --radius-cell: 20px;
+  --radius-btn: 14px;
 }
 
 * {
@@ -16,8 +18,9 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #0a0a0f;
+  background: var(--bg-page);
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -29,126 +32,144 @@ body {
   width: 100%;
   height: 100vh;
   height: 100dvh;
-}
-
-/* Фон, на котором стеклянные кнопки будут преломлять свет */
-.bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.12), transparent 55%),
-    radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.08), transparent 55%),
-    linear-gradient(160deg, #1c1c1c 0%, #0a0a0a 60%, #000000 100%);
-  z-index: 0;
-}
-
-.layout {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px)
-           env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
-}
-
-/* ---------- Левая колонка: стеклянные кнопки ---------- */
-
-.glass-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 0 0 34%;
-  max-width: 220px;
-  height: 100%;
-  justify-content: center;
-}
-
-.glass-btn {
-  position: relative;
-  flex: 1;
-  max-height: 90px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-btn);
-  background: var(--glass-bg);
-  backdrop-filter: blur(18px) saturate(100%);
-  -webkit-backdrop-filter: blur(18px) saturate(100%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.5),
-    inset 0 -1px 6px rgba(0, 0, 0, 0.15),
-    0 6px 18px rgba(0, 0, 0, 0.35);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 14px;
+  background: var(--bg-page);
   overflow: hidden;
-  transition: transform 0.18s ease, background 0.25s ease, box-shadow 0.25s ease;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
-/* Блик сверху — характерная черта Liquid Glass */
-.glass-btn::before {
-  content: "";
+/* ---------- Верхняя панель шаблонов ---------- */
+
+.template-bar {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0,0,0,0.04);
+  z-index: 40;
+}
+
+.template-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.template-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.template-btn svg rect {
+  fill: none;
+  stroke: #b8b8bd;
+  stroke-width: 1.6;
+}
+
+.template-btn.active {
+  background: #e8f1ff;
+}
+
+.template-btn.active svg rect {
+  stroke: var(--ios-blue);
+}
+
+.template-btn:active {
+  transform: scale(0.93);
+}
+
+/* ---------- Сетка ячеек ---------- */
+
+.canvas {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 45%;
-  background: linear-gradient(to bottom, var(--glass-highlight), transparent);
-  opacity: 0.25;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 34px;
+  display: grid;
+  gap: 10px;
+  padding: calc(70px + env(safe-area-inset-top)) 10px 10px 10px;
+}
+
+.canvas.layout-1 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.canvas.layout-1 .grid-cell[data-cell="0"] { grid-column: 1; grid-row: 1; }
+.canvas.layout-1 .grid-cell[data-cell="1"] { grid-column: 2; grid-row: 1; }
+.canvas.layout-1 .grid-cell[data-cell="2"] { grid-column: 1; grid-row: 2; }
+.canvas.layout-1 .grid-cell[data-cell="3"] { grid-column: 2; grid-row: 2; }
+
+.canvas.layout-2 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.canvas.layout-2 .grid-cell[data-cell="0"] { grid-column: 1; grid-row: 1; }
+.canvas.layout-2 .grid-cell[data-cell="1"] { grid-column: 1; grid-row: 2; }
+.canvas.layout-2 .grid-cell[data-cell="2"] { display: none; }
+.canvas.layout-2 .grid-cell[data-cell="3"] { display: none; }
+
+.canvas.layout-3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.canvas.layout-3 .grid-cell[data-cell="0"] { grid-column: 1; grid-row: 1; }
+.canvas.layout-3 .grid-cell[data-cell="1"] { grid-column: 1; grid-row: 2; }
+.canvas.layout-3 .grid-cell[data-cell="2"] { grid-column: 2; grid-row: 1 / 3; }
+.canvas.layout-3 .grid-cell[data-cell="3"] { display: none; }
+
+.canvas.layout-4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+.canvas.layout-4 .grid-cell[data-cell="0"] { grid-column: 1; grid-row: 1; }
+.canvas.layout-4 .grid-cell[data-cell="1"] { grid-column: 2; grid-row: 1; }
+.canvas.layout-4 .grid-cell[data-cell="2"] { display: none; }
+.canvas.layout-4 .grid-cell[data-cell="3"] { display: none; }
+
+.grid-cell {
+  position: relative;
+  border-radius: var(--radius-cell);
+  background: var(--bg-cell);
+  border: 1.5px dashed var(--border-cell);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.grid-cell.filled {
+  border-style: solid;
+  border-color: transparent;
+  background: #000;
+}
+
+.grid-cell.drag-over {
+  border-color: var(--ios-blue);
+  border-style: solid;
+  background: #eaf2ff;
+}
+
+.cell-placeholder {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+  padding: 10px;
   pointer-events: none;
 }
 
-.glass-btn:active {
-  transform: scale(0.96);
-}
-
-.glass-btn.active {
-  background: var(--glass-bg-active);
-  border-color: rgba(255, 255, 255, 0.55);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.7),
-    inset 0 -1px 6px rgba(0, 0, 0, 0.15),
-    0 8px 22px rgba(255, 255, 255, 0.25);
-}
-
-.btn-label {
-  position: relative;
-  z-index: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ---------- Правая колонка: плеер ---------- */
-
-.player-wrap {
-  flex: 1;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.player-frame {
-  position: relative;
-  width: 100%;
-  height: 92%;
-  max-height: 100%;
-  border-radius: var(--radius-player);
-  overflow: hidden;
-  background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-#player {
+.grid-cell video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -156,55 +177,148 @@ body {
   background: #000;
 }
 
-.play-overlay {
+.cell-btn {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.cell-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: #fff;
+}
+
+.cell-clear {
+  top: 8px;
+  right: 8px;
+}
+
+.cell-mute {
+  bottom: 8px;
+  left: 8px;
+}
+
+/* ---------- Нижняя шторка ---------- */
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 68vh;
+  background: var(--sheet-bg);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(calc(100% - 34px));
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet.open {
+  transform: translateY(0);
+}
+
+.sheet.dragging {
+  transition: none;
+}
+
+.sheet-handle {
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.handle-bar {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: #d5d5da;
+}
+
+.sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 14px 24px 14px;
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.sheet-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background-color: #e5e5ea;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  touch-action: none;
+}
+
+.sheet-thumb.dragging-source {
+  opacity: 0.35;
+}
+
+.thumb-label {
+  position: absolute;
+  bottom: 5px;
+  left: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.thumb-loading {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.25);
-  opacity: 1;
-  transition: opacity 0.25s ease;
+  color: #b0b0b5;
+  font-size: 11px;
+}
+
+/* ---------- Плавающий призрак при перетаскивании ---------- */
+
+.drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: 90px;
+  border-radius: 14px;
+  background-color: #e5e5ea;
+  background-size: cover;
+  background-position: center;
   pointer-events: none;
-}
-
-.play-overlay.hidden {
   opacity: 0;
+  transform: translate(-9999px, -9999px) scale(1.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  z-index: 100;
 }
 
-.play-overlay svg {
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
-}
-
-/* ---------- Портретная ориентация: колонка вместо строки ---------- */
-
-@media (orientation: portrait) {
-  .layout {
-    flex-direction: column;
-  }
-
-  .player-wrap {
-    flex: 1 1 auto;
-    width: 100%;
-    order: 1;
-  }
-
-  .player-frame {
-    width: 100%;
-    height: 100%;
-  }
-
-  .glass-container {
-    flex-direction: row;
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: 100%;
-    height: 84px;
-    order: 2;
-  }
-
-  .glass-btn {
-    max-height: none;
-    font-size: 13px;
-  }
+.drag-ghost.visible {
+  opacity: 0.92;
 }
