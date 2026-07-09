@@ -1,4 +1,4 @@
-const CACHE_NAME = "video-grid-cache-v2";
+const CACHE_NAME = "video-grid-cache-v3";
 const ASSETS = ["./", "index.html", "style.css", "script.js", "manifest.json"];
 
 self.addEventListener("install", (event) => {
