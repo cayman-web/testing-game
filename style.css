@@ -1,0 +1,210 @@
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.14);
+  --glass-bg-active: rgba(255, 255, 255, 0.28);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-highlight: rgba(255, 255, 255, 0.55);
+  --radius-btn: 18px;
+  --radius-player: 28px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #0a0a0f;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Фон, на котором стеклянные кнопки будут преломлять свет */
+.bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.12), transparent 55%),
+    radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(160deg, #1c1c1c 0%, #0a0a0a 60%, #000000 100%);
+  z-index: 0;
+}
+
+.layout {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px)
+           env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
+}
+
+/* ---------- Левая колонка: стеклянные кнопки ---------- */
+
+.glass-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 34%;
+  max-width: 220px;
+  height: 100%;
+  justify-content: center;
+}
+
+.glass-btn {
+  position: relative;
+  flex: 1;
+  max-height: 90px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-btn);
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(100%);
+  -webkit-backdrop-filter: blur(18px) saturate(100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 6px rgba(0, 0, 0, 0.15),
+    0 6px 18px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  overflow: hidden;
+  transition: transform 0.18s ease, background 0.25s ease, box-shadow 0.25s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Блик сверху — характерная черта Liquid Glass */
+.glass-btn::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, var(--glass-highlight), transparent);
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.glass-btn:active {
+  transform: scale(0.96);
+}
+
+.glass-btn.active {
+  background: var(--glass-bg-active);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    inset 0 -1px 6px rgba(0, 0, 0, 0.15),
+    0 8px 22px rgba(255, 255, 255, 0.25);
+}
+
+.btn-label {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Правая колонка: плеер ---------- */
+
+.player-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-frame {
+  position: relative;
+  width: 100%;
+  height: 92%;
+  max-height: 100%;
+  border-radius: var(--radius-player);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+#player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 1;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.play-overlay.hidden {
+  opacity: 0;
+}
+
+.play-overlay svg {
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+/* ---------- Портретная ориентация: колонка вместо строки ---------- */
+
+@media (orientation: portrait) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .player-wrap {
+    flex: 1 1 auto;
+    width: 100%;
+    order: 1;
+  }
+
+  .player-frame {
+    width: 100%;
+    height: 100%;
+  }
+
+  .glass-container {
+    flex-direction: row;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    height: 84px;
+    order: 2;
+  }
+
+  .glass-btn {
+    max-height: none;
+    font-size: 13px;
+  }
+}

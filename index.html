@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Видео-плеер</title>
+
+<!-- PWA / iOS "Add to Home Screen" -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Видео">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Фоновая картинка/градиент, чтобы стекло было на чём "играть" -->
+  <div class="bg"></div>
+
+  <div class="layout">
+
+    <!-- Левая колонка: стеклянные кнопки выбора видео -->
+    <nav class="glass-container" id="buttonList">
+      <button class="glass-btn active" data-video="0">
+        <span class="btn-label">Видео 1</span>
+      </button>
+      <button class="glass-btn" data-video="1">
+        <span class="btn-label">Видео 2</span>
+      </button>
+      <button class="glass-btn" data-video="2">
+        <span class="btn-label">Видео 3</span>
+      </button>
+      <button class="glass-btn" data-video="3">
+        <span class="btn-label">Видео 4</span>
+      </button>
+    </nav>
+
+    <!-- Правая колонка: плеер в закруглённом прямоугольнике -->
+    <div class="player-wrap">
+      <div class="player-frame">
+        <video id="player" playsinline webkit-playsinline preload="metadata" controls>
+          <source src="videos/video1.mp4" type="video/mp4">
+        </video>
+        <div class="play-overlay" id="playOverlay">
+          <svg viewBox="0 0 24 24" width="34" height="34">
+            <path fill="white" d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
