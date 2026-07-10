@@ -1,5 +1,5 @@
-// ===== Список видео (16 штук). Файлы лежат в корне репозитория =====
-const VIDEO_COUNT = 16;
+// ===== Список видео (24 штуки). Файлы лежат в корне репозитория =====
+const VIDEO_COUNT = 24;
 const videos = Array.from({ length: VIDEO_COUNT }, (_, i) => `video${i + 1}.mp4`);
 const MAX_CELLS = 4;
 
